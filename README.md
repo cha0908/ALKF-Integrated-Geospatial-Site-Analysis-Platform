@@ -10,19 +10,28 @@ ALKF – Integrated Geospatial Site Analysis Platform
 
 # Executive Overview
 
-**ALKF – Integrated Geospatial Site Analysis Platform** is a structured urban intelligence interface engineered to present professional-grade spatial feasibility analysis through a modular, scalable, and deployment-ready frontend architecture.
+**ALKF – Integrated Geospatial Site Analysis Platform** is a production-ready geospatial visualization interface engineered to present automated urban feasibility analysis in a structured, scalable, and enterprise-grade environment.
 
-The platform is designed to provide a controlled, enterprise-level visualization system for:
+The platform acts as a controlled frontend orchestration layer for advanced spatial intelligence systems, delivering high-quality interactive visual outputs for professional planning workflows.
 
-- Urban Site Intelligence Presentation  
-- Spatial Feasibility Assessment  
-- Interactive Geospatial Mapping  
-- Infrastructure Context Visualization  
-- Architectural & Planning Dashboards  
-- Structured API Orchestration Layer  
-- Static Cloud Deployment Compatibility  
+### Core Capabilities
 
-This system targets urban planners, architects, infrastructure consultants, research engineers, and development stakeholders requiring structured spatial presentation interfaces.
+- Structured Urban Site Intelligence Presentation  
+- Automated Spatial Feasibility Visualization  
+- Interactive Geospatial Mapping Interface  
+- Infrastructure Context & Density Visualization  
+- Modular API Orchestration Layer  
+- Cloud-Optimized Static Deployment  
+- SPA-Based Professional Dashboard Architecture  
+
+This platform is designed for:
+
+- Urban Planners  
+- Architects  
+- Infrastructure Consultants  
+- Real Estate Analysts  
+- GIS Researchers  
+- Development Stakeholders  
 
 ---
 
@@ -30,32 +39,38 @@ This system targets urban planners, architects, infrastructure consultants, rese
 
 ## Deployment Environment
 
-- Hosting Provider: Render  
-- Service Type: Static Site  
-- Framework: Vite + React  
-- Build Output Directory: dist  
-- Node Version: 18+ recommended  
+- Hosting Provider: **Render**
+- Service Type: **Static Site**
+- Build Framework: **Vite + React**
+- Styling System: **Tailwind CSS**
+- Output Directory: **dist**
+- Node Version: **18+ Recommended**
+
+This platform is optimized for static hosting and does not require a backend runtime.
+
+---
 
 ## Render Static Configuration
 
-When deploying on Render, configure the following:
+### Build Command
 
-### Build Command:
 ```
 npm install && npm run build
 ```
 
-### Publish Directory:
+### Publish Directory
+
 ```
 dist
 ```
 
-### Environment:
+### Environment Type
+
 ```
 Static Site
 ```
 
-No backend runtime or server process is required.
+No server process is required.
 
 ---
 
@@ -80,27 +95,38 @@ npm install
 npm run dev
 ```
 
-Default local development server:
+Local Development URL:
 
 ```
 http://localhost:5173
 ```
 
+Hot reload is enabled by default via Vite.
+
 ---
 
 # Production Build Process
 
-## Generate Optimized Build
+## Generate Optimized Production Build
 
 ```
 npm run build
 ```
 
-This generates a production-optimized static build inside:
+Build artifacts are generated inside:
 
 ```
 /dist
 ```
+
+This build is:
+
+- Minified
+- Tree-shaken
+- Optimized for static hosting
+- Tailwind-purged
+
+---
 
 ## Preview Production Build Locally
 
@@ -108,7 +134,7 @@ This generates a production-optimized static build inside:
 npm run preview
 ```
 
-This simulates production behavior before deployment.
+This simulates production routing behavior before deployment.
 
 ---
 
@@ -116,32 +142,33 @@ This simulates production behavior before deployment.
 
 Before pushing to production:
 
-- All routes load without console errors  
-- No hardcoded localhost URLs  
-- No unused imports  
-- Tailwind build purge verified  
-- Images load correctly from public directory  
-- React Router routes function correctly  
+- All SPA routes load without console errors  
+- No hardcoded localhost endpoints  
+- Environment variables configured properly  
+- Assets correctly served from public directory  
+- No unused component imports  
+- Lighthouse performance above acceptable threshold  
+- React Router navigation works on refresh  
 
 ---
 
-# React Router Static Hosting Configuration
+# React Router Configuration for Static Hosting
 
-Since this is a Single Page Application (SPA), route refresh must be handled correctly.
+Since this is a Single Page Application (SPA), client-side routing must be preserved on refresh.
 
-Create the following file:
+Create:
 
 ```
 public/_redirects
 ```
 
-Add the following content:
+Add:
 
 ```
 /* /index.html 200
 ```
 
-This ensures client-side routing works on refresh and direct URL access.
+This ensures direct URL access and refresh do not break routing.
 
 ---
 
@@ -152,16 +179,15 @@ ALKF-Integrated-Geospatial-Site-Analysis-Platform/
 │
 ├── public/
 │   ├── logo.png
-│   ├── logo1.PNG
-│   ├── logo3.PNG
 │   ├── map.png
-│   ├── video1.MP4
+│   ├── video1.mp4
 │   └── video2.mp4
 │
 ├── src/
 │   ├── components/
 │   │   ├── Navbar.jsx
-│   │   └── Footer.jsx
+│   │   ├── Footer.jsx
+│   │   └── Layout.jsx
 │   │
 │   ├── pages/
 │   │   ├── Home.jsx
@@ -171,15 +197,17 @@ ALKF-Integrated-Geospatial-Site-Analysis-Platform/
 │   │   ├── RequestAPI.jsx
 │   │   └── About.jsx
 │   │
+│   ├── hooks/
+│   ├── services/
 │   ├── App.jsx
 │   ├── main.jsx
 │   └── index.css
 │
 ├── index.html
 ├── package.json
+├── vite.config.js
 ├── tailwind.config.js
 ├── postcss.config.js
-├── vite.config.js
 └── .gitignore
 ```
 
@@ -187,38 +215,38 @@ ALKF-Integrated-Geospatial-Site-Analysis-Platform/
 
 # Architecture Overview
 
-## Application Flow
+## Frontend Application Flow
 
 User Access  
 → React Application (Vite Runtime)  
-→ Routing Layer  
-→ Page Modules  
-→ Request API Interface  
+→ Router Layer (React Router)  
+→ Modular Page Components  
+→ API Service Layer  
 → External Spatial Intelligence API  
-→ Response Visualization Layer  
-→ Rendered Map / Data Output  
+→ Response Handling  
+→ Map / Visualization Rendering  
 
 ---
 
 # Core Modules
 
 ## Home  
-Enterprise landing interface presenting platform positioning and system orientation.
+Enterprise landing interface introducing platform positioning and analytical capabilities.
 
-## Platform Overview  
-Structured explanation of spatial intelligence capabilities and infrastructure modelling orientation.
+## Platform  
+Overview of spatial intelligence modules and architectural structure.
 
 ## Architecture  
-Technical explanation of system layering, routing architecture, and deployment strategy.
+Technical explanation of frontend routing, orchestration design, and deployment strategy.
 
 ## Interactive Maps  
-Dedicated visualization environment for geospatial layer rendering and context overlays.
+Dedicated geospatial visualization interface rendering analytical outputs.
 
 ## Request API  
-Frontend orchestration layer interacting with an external spatial intelligence service.
+Frontend orchestration module enabling controlled API request submission and response handling.
 
 ## About  
-Professional positioning and design philosophy articulation.
+Professional positioning, mission statement, and system design philosophy.
 
 ---
 
@@ -231,13 +259,13 @@ Professional positioning and design philosophy articulation.
 | Routing | React Router |
 | Styling | Tailwind CSS |
 | Deployment | Render Static |
-| Media | Native HTML5 |
+| Visualization | HTML5 / Canvas / Embedded Map Engine |
 
 ---
 
-# Environment Variables (If Required)
+# Environment Variable Configuration
 
-If connecting to an external API:
+If connecting to a backend API:
 
 Create:
 
@@ -248,16 +276,18 @@ Create:
 Example:
 
 ```
-VITE_API_URL=https://your-api-endpoint.com
+VITE_API_BASE_URL=https://your-production-api.com
 ```
 
-Access in code using:
+Access within application:
 
 ```
-import.meta.env.VITE_API_URL
+import.meta.env.VITE_API_BASE_URL
 ```
 
-Never commit sensitive keys to GitHub.
+Important:
+- Never commit `.env` to version control  
+- Use `.env.production` for deployment environments  
 
 ---
 
@@ -265,37 +295,39 @@ Never commit sensitive keys to GitHub.
 
 ## Functional Testing
 
-- Validate route navigation  
-- Test API request submission  
-- Confirm response rendering  
-- Validate error handling UI  
+- Route transition validation  
+- API request-response cycle testing  
+- Error boundary handling  
+- Mobile responsiveness verification  
 
 ## Performance Testing
 
-- Run Lighthouse audit  
-- Verify bundle size  
-- Confirm Tailwind purge effectiveness  
-- Check media optimization  
+- Lighthouse Audit  
+- Bundle size inspection  
+- Lazy-load validation  
+- Asset compression verification  
 
-## Production Smoke Test
+## Production Smoke Testing
 
 After deployment:
 
 - Open root URL  
-- Refresh sub-routes  
-- Test interactive map rendering  
-- Validate API request response  
-- Check browser console for runtime errors  
+- Test deep-link routing  
+- Refresh multiple routes  
+- Trigger API call  
+- Inspect console for runtime errors  
+- Validate map rendering stability  
 
 ---
 
 # Performance Optimization Strategy
 
-- Vite production bundling  
+- Production tree-shaking via Vite  
+- Tailwind CSS purge optimization  
 - Static asset compression  
-- Tailwind purge optimization  
-- Modular page isolation  
-- Lazy-loading potential for future scalability  
+- Component-level modularization  
+- Deferred loading of heavy visualization modules  
+- Controlled API request batching  
 
 ---
 
@@ -306,50 +338,59 @@ After deployment:
 | Phase 1 | Core React Architecture | Completed |
 | Phase 2 | Tailwind Integration | Completed |
 | Phase 3 | Modular Routing | Completed |
-| Phase 4 | Map Isolation Module | Completed |
-| Phase 5 | API Interface | Completed |
-| Phase 6 | UI Refinement | Completed |
-| Phase 7 | Static Deployment | Completed |
+| Phase 4 | Map Visualization Isolation | Completed |
+| Phase 5 | API Orchestration Layer | Completed |
+| Phase 6 | UI System Refinement | Completed |
+| Phase 7 | Static Deployment (Render) | Completed |
 
 ---
 
 # Troubleshooting Guide
 
-## Build Fails on Render  
-Ensure:  
-- Build command is correct  
-- Publish directory is set to dist  
-- Node version is compatible  
+## Build Failure on Render
 
-## Blank Page After Deployment  
-Check:  
-- Browser console errors  
-- Missing _redirects file  
-- Incorrect asset paths  
+Verify:
+- Node version compatibility  
+- Correct build command  
+- Correct publish directory  
+- No missing dependencies  
 
-## API Not Responding  
-Verify:  
+---
+
+## Blank Page After Deployment
+
+Check:
+- Console errors  
+- Missing `_redirects` file  
+- Incorrect base path configuration  
+- Asset path resolution  
+
+---
+
+## API Request Failure
+
+Verify:
 - Environment variable configuration  
-- Correct API base URL  
-- CORS permissions  
+- Production API endpoint accessibility  
+- CORS policy settings  
 
 ---
 
 # Future Enhancements
 
-- Authentication layer  
-- Role-based access  
+- Authentication & Role-Based Access  
+- Multi-project workspace  
 - Dynamic spatial layer toggling  
 - Exportable PDF reports  
-- Administrative dashboard  
-- SaaS architecture adaptation  
-- Micro-frontend expansion  
+- Enterprise SaaS packaging  
+- Dark/Light theme switching  
+- Micro-frontend expansion strategy  
 
 ---
 
 # License
 
-Refer to LICENSE.md for licensing information.
+Refer to `LICENSE.md` for licensing details.
 
 ---
 

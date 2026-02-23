@@ -10,61 +10,138 @@ ALKF – Integrated Geospatial Site Analysis Platform
 
 # Executive Overview
 
-**ALKF – Integrated Geospatial Site Analysis Platform** is a structured urban intelligence interface engineered to present professional-grade spatial feasibility analysis through a modular and scalable frontend architecture.
+**ALKF – Integrated Geospatial Site Analysis Platform** is a structured urban intelligence interface engineered to present professional-grade spatial feasibility analysis through a modular, scalable, and deployment-ready frontend architecture.
 
-The platform provides a controlled, enterprise-level visualization environment for:
+The platform is designed to provide a controlled, enterprise-level visualization system for:
 
 - Urban Site Intelligence Presentation  
-- Interactive Spatial Mapping  
+- Spatial Feasibility Assessment  
+- Interactive Geospatial Mapping  
 - Infrastructure Context Visualization  
 - Architectural & Planning Dashboards  
-- API Request Orchestration  
-- Enterprise-Ready Deployment  
+- Structured API Orchestration Layer  
+- Static Cloud Deployment Compatibility  
 
-Designed for urban planners, architects, developers, and infrastructure consultants.
+This system targets urban planners, architects, infrastructure consultants, research engineers, and development stakeholders requiring structured spatial presentation interfaces.
 
 ---
 
-# System Architecture
+# Production Deployment
 
-## End-to-End Frontend Flow
+## Deployment Environment
 
-```mermaid
-flowchart TD
+- Hosting Provider: Render  
+- Service Type: Static Site  
+- Framework: Vite + React  
+- Build Output Directory: dist  
+- Node Version: 18+ recommended  
 
-A[User Access] --> B[React Application - Vite]
-B --> C[Routing Layer]
+## Render Static Configuration
 
-C --> D1[Home]
-C --> D2[Platform Overview]
-C --> D3[Architecture]
-C --> D4[Interactive Maps]
-C --> D5[Request API]
-C --> D6[About]
+When deploying on Render, configure the following:
 
-D5 --> E[External Spatial Intelligence API]
-E --> F[Response Visualization Layer]
-F --> G[Rendered Map / Data Output]
+### Build Command:
+```
+npm install && npm run build
+```
+
+### Publish Directory:
+```
+dist
+```
+
+### Environment:
+```
+Static Site
+```
+
+No backend runtime or server process is required.
+
+---
+
+# Local Development Setup
+
+## 1. Clone Repository
+
+```
+git clone https://github.com/YOUR_USERNAME/ALKF-Integrated-Geospatial-Site-Analysis-Platform.git
+cd ALKF-Integrated-Geospatial-Site-Analysis-Platform
+```
+
+## 2. Install Dependencies
+
+```
+npm install
+```
+
+## 3. Run Development Server
+
+```
+npm run dev
+```
+
+Default local development server:
+
+```
+http://localhost:5173
 ```
 
 ---
 
-## UI Component Hierarchy
+# Production Build Process
 
-```mermaid
-flowchart LR
+## Generate Optimized Build
 
-App.jsx --> Navbar
-App.jsx --> Pages
-App.jsx --> Footer
-
-Pages --> Home.jsx
-Pages --> Platform.jsx
-Pages --> Architecture.jsx
-Pages --> InteractiveMaps.jsx
-Pages --> RequestAPI.jsx
-Pages --> About.jsx
 ```
+npm run build
+```
+
+This generates a production-optimized static build inside:
+
+```
+/dist
+```
+
+## Preview Production Build Locally
+
+```
+npm run preview
+```
+
+This simulates production behavior before deployment.
+
+---
+
+# Deployment Verification Checklist
+
+Before pushing to production:
+
+- All routes load without console errors  
+- No hardcoded localhost URLs  
+- No unused imports  
+- Tailwind build purge verified  
+- Images load correctly from public directory  
+- React Router routes function correctly  
+
+---
+
+# React Router Static Hosting Configuration
+
+Since this is a Single Page Application (SPA), route refresh must be handled correctly.
+
+Create the following file:
+
+```
+public/_redirects
+```
+
+Add the following content:
+
+```
+/* /index.html 200
+```
+
+This ensures client-side routing works on refresh and direct URL access.
 
 ---
 
@@ -100,98 +177,48 @@ ALKF-Integrated-Geospatial-Site-Analysis-Platform/
 │
 ├── index.html
 ├── package.json
-├── package-lock.json
 ├── tailwind.config.js
 ├── postcss.config.js
 ├── vite.config.js
-├── LICENSE.md
 └── .gitignore
 ```
 
 ---
 
-# Core Platform Modules
+# Architecture Overview
+
+## Application Flow
+
+User Access  
+→ React Application (Vite Runtime)  
+→ Routing Layer  
+→ Page Modules  
+→ Request API Interface  
+→ External Spatial Intelligence API  
+→ Response Visualization Layer  
+→ Rendered Map / Data Output  
 
 ---
 
-## 1. Home Module
+# Core Modules
 
-**Purpose:**  
-Enterprise landing interface presenting ALKF positioning and spatial intelligence capability.
+## Home  
+Enterprise landing interface presenting platform positioning and system orientation.
 
-**Includes:**
-- Hero architecture section  
-- Spatial visualization previews  
-- Strategic platform messaging  
-- Gateway navigation  
+## Platform Overview  
+Structured explanation of spatial intelligence capabilities and infrastructure modelling orientation.
 
----
+## Architecture  
+Technical explanation of system layering, routing architecture, and deployment strategy.
 
-## 2. Platform Overview Module
+## Interactive Maps  
+Dedicated visualization environment for geospatial layer rendering and context overlays.
 
-**Purpose:**  
-High-level explanation of spatial system capabilities.
+## Request API  
+Frontend orchestration layer interacting with an external spatial intelligence service.
 
-**Features:**
-- Spatial analytics positioning  
-- Infrastructure modelling summary  
-- Environmental intelligence outline  
-- Feasibility assessment framing  
-
----
-
-## 3. Architecture Module
-
-**Purpose:**  
-Technical explanation of platform logic and infrastructure design.
-
-**Includes:**
-- Processing flow diagrams  
-- System stack breakdown  
-- Modular frontend structure  
-- Cloud deployment readiness  
-
----
-
-## 4. Interactive Maps Module
-
-**Purpose:**  
-Dedicated spatial visualization interface.
-
-**Features:**
-- Dynamic map rendering  
-- Spatial layer visualization  
-- Context overlays  
-- Infrastructure density display  
-- Urban analytics preview  
-
-Architecturally isolated for scalability and performance.
-
----
-
-## 5. Request API Module
-
-**Purpose:**  
-Frontend orchestration layer for backend spatial intelligence engine.
-
-**Functions:**
-- Accept lot / site input  
-- Send request to spatial API  
-- Process structured response  
-- Render visualization output  
-
----
-
-## 6. About Module
-
-**Purpose:**  
-Enterprise positioning and mission statement.
-
-**Focus Areas:**
-- Urban intelligence mission  
-- Infrastructure-grade philosophy  
-- Architectural modelling orientation  
-- Professional audience targeting  
+## About  
+Professional positioning and design philosophy articulation.
 
 ---
 
@@ -200,127 +227,129 @@ Enterprise positioning and mission statement.
 | Layer | Technology |
 |-------|------------|
 | Build Tool | Vite |
-| Frontend Framework | React |
-| Styling System | Tailwind CSS |
+| Framework | React |
 | Routing | React Router |
-| Media Handling | HTML5 Native |
-| Deployment Ready | Vercel / Netlify / Render |
+| Styling | Tailwind CSS |
+| Deployment | Render Static |
+| Media | Native HTML5 |
 
 ---
 
-# Styling Architecture
+# Environment Variables (If Required)
 
-### Tailwind CSS Configuration
+If connecting to an external API:
 
-- Utility-first styling system  
-- Structured spacing grid  
-- Enterprise-neutral color palette  
-- Responsive breakpoints  
-- Production-optimized builds  
+Create:
 
-### Design Philosophy
+```
+.env
+```
 
-- Clean light theme  
-- Architectural typography hierarchy  
-- Infrastructure-grade spacing logic  
-- No startup-style UI  
-- No unnecessary animation overload  
+Example:
+
+```
+VITE_API_URL=https://your-api-endpoint.com
+```
+
+Access in code using:
+
+```
+import.meta.env.VITE_API_URL
+```
+
+Never commit sensitive keys to GitHub.
 
 ---
 
-# Build & Development
+# Testing & Validation Strategy
 
-## Install Dependencies
+## Functional Testing
 
-```bash
-npm install
-```
+- Validate route navigation  
+- Test API request submission  
+- Confirm response rendering  
+- Validate error handling UI  
 
-## Run Development Server
+## Performance Testing
 
-```bash
-npm run dev
-```
+- Run Lighthouse audit  
+- Verify bundle size  
+- Confirm Tailwind purge effectiveness  
+- Check media optimization  
 
-## Production Build
+## Production Smoke Test
 
-```bash
-npm run build
-```
+After deployment:
 
-## Preview Production Build
-
-```bash
-npm run preview
-```
-
----
-
-# Deployment Strategy
-
-Optimized for static hosting environments:
-
-- Vercel  
-- Netlify  
-- Render Static  
-- Cloudflare Pages  
-
-No server-side rendering required.
+- Open root URL  
+- Refresh sub-routes  
+- Test interactive map rendering  
+- Validate API request response  
+- Check browser console for runtime errors  
 
 ---
 
-# Performance Optimization
+# Performance Optimization Strategy
 
-- Vite-based optimized bundling  
+- Vite production bundling  
 - Static asset compression  
-- Modular page separation  
-- Clean routing architecture  
-- Production-ready Tailwind purge  
-- Lightweight media handling  
+- Tailwind purge optimization  
+- Modular page isolation  
+- Lazy-loading potential for future scalability  
 
 ---
 
-# Implementation Stages
+# Implementation Status
 
-| Stage | Description | Status |
-|--------|------------|--------|
-| Stage 1 | React Core Architecture | ✅ Completed |
-| Stage 2 | Tailwind Integration | ✅ Completed |
-| Stage 3 | Modular Routing System | ✅ Completed |
-| Stage 4 | Interactive Maps Isolation | ✅ Completed |
-| Stage 5 | API Request Interface | ✅ Completed |
-| Stage 6 | Enterprise UI Refinement | ✅ Completed |
-| Stage 7 | Static Deployment Ready | ✅ Completed |
+| Phase | Description | Status |
+|-------|------------|--------|
+| Phase 1 | Core React Architecture | Completed |
+| Phase 2 | Tailwind Integration | Completed |
+| Phase 3 | Modular Routing | Completed |
+| Phase 4 | Map Isolation Module | Completed |
+| Phase 5 | API Interface | Completed |
+| Phase 6 | UI Refinement | Completed |
+| Phase 7 | Static Deployment | Completed |
 
 ---
 
-# Engineering Significance
+# Troubleshooting Guide
 
-This platform demonstrates:
+## Build Fails on Render  
+Ensure:  
+- Build command is correct  
+- Publish directory is set to dist  
+- Node version is compatible  
 
-- Modular React system design  
-- Structured enterprise UI architecture  
-- Clean separation of visualization and routing logic  
-- Scalable frontend foundation for geospatial systems  
-- Cloud-ready static deployment configuration  
+## Blank Page After Deployment  
+Check:  
+- Browser console errors  
+- Missing _redirects file  
+- Incorrect asset paths  
+
+## API Not Responding  
+Verify:  
+- Environment variable configuration  
+- Correct API base URL  
+- CORS permissions  
 
 ---
 
 # Future Enhancements
 
-- Authentication & role-based access  
-- Dynamic layer toggling system  
-- Real-time spatial analytics integration  
-- PDF export module  
-- Admin dashboard interface  
+- Authentication layer  
+- Role-based access  
+- Dynamic spatial layer toggling  
+- Exportable PDF reports  
+- Administrative dashboard  
+- SaaS architecture adaptation  
 - Micro-frontend expansion  
-- SaaS configuration layer  
 
 ---
 
 # License
 
-Refer to `LICENSE.md` for licensing details.
+Refer to LICENSE.md for licensing information.
 
 ---
 

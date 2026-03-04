@@ -108,7 +108,7 @@ function CreateSiteModal({ onClose, onConfirm }) {
                                     flex: 1, padding: '10px 0', border: 'none',
                                     borderRight: i === 0 ? '1px solid #E5E7EB' : 'none',
                                     background: tab === t.id ? '#fff' : '#F9FAFB',
-                                    color: tab === t.id ? '#E97316' : '#6B7280',
+                                    color: tab === t.id ? '#6366F1' : '#6B7280',
                                     fontWeight: tab === t.id ? 700 : 500,
                                     fontSize: 14, cursor: 'pointer', transition: 'all 0.12s',
                                 }}>
@@ -120,7 +120,7 @@ function CreateSiteModal({ onClose, onConfirm }) {
                         {/* Input */}
                         <div style={{ position: 'relative' }}>
                             <Search size={14} style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', pointerEvents: 'none' }} />
-                            {searching && <Loader size={13} style={{ position: 'absolute', right: 48, top: '50%', transform: 'translateY(-50%)', color: '#E97316', animation: 'spin 1s linear infinite' }} />}
+                            {searching && <Loader size={13} style={{ position: 'absolute', right: 48, top: '50%', transform: 'translateY(-50%)', color: '#6366F1', animation: 'spin 1s linear infinite' }} />}
                             {resultCount > 0 && !searching && (
                                 <span style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', fontSize: 11, color: '#9CA3AF', fontWeight: 600, pointerEvents: 'none' }}>
                                     {resultCount} results
@@ -133,7 +133,7 @@ function CreateSiteModal({ onClose, onConfirm }) {
                                 onChange={e => setQuery(e.target.value)}
                                 placeholder={tab === 'lot' ? 'e.g. IL 1657, STTL 467, NKIL…' : 'e.g. The Lily, 129 Repulse Bay Road…'}
                                 style={{ width: '100%', border: '1.5px solid #E5E7EB', borderRadius: 9, padding: '11px 110px 11px 38px', fontSize: 14, color: '#111827', outline: 'none', background: '#FAFAFA', transition: 'all 0.15s' }}
-                                onFocus={e => { e.target.style.borderColor = '#E97316'; e.target.style.background = '#fff' }}
+                                onFocus={e => { e.target.style.borderColor = '#6366F1'; e.target.style.background = '#fff' }}
                                 onBlur={e => { e.target.style.borderColor = '#E5E7EB'; e.target.style.background = '#FAFAFA' }}
                             />
                         </div>
@@ -149,7 +149,7 @@ function CreateSiteModal({ onClose, onConfirm }) {
                                         {results.map((r, i) => {
                                             const isAdded = selectedLot?.ref_id === r.ref_id && selectedLot?.lot_id === r.lot_id
                                             return (
-                                                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 16px', borderBottom: i < results.length - 1 ? '1px solid #F9FAFB' : 'none', background: isAdded ? '#FFF7ED' : '#fff', transition: 'background 0.1s' }}>
+                                                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 16px', borderBottom: i < results.length - 1 ? '1px solid #F9FAFB' : 'none', background: isAdded ? '#EEF2FF' : '#fff', transition: 'background 0.1s' }}>
                                                     <div style={{ flex: 1, minWidth: 0 }}>
                                                         <p style={{ fontSize: 14, fontWeight: 600, color: '#111827', marginBottom: 2 }}>
                                                             {r.name || r.lot_id}
@@ -160,7 +160,7 @@ function CreateSiteModal({ onClose, onConfirm }) {
                                                     </div>
                                                     <button
                                                         onClick={() => setSelectedLot(isAdded ? null : r)}
-                                                        style={{ marginLeft: 14, padding: '8px 20px', borderRadius: 7, border: 'none', background: isAdded ? '#FED7AA' : '#E97316', color: isAdded ? '#C2410C' : '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', flexShrink: 0, transition: 'all 0.15s', minWidth: 60 }}
+                                                        style={{ marginLeft: 14, padding: '8px 20px', borderRadius: 7, border: 'none', background: isAdded ? '#C7D2FE' : '#6366F1', color: isAdded ? '#4338CA' : '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', flexShrink: 0, transition: 'all 0.15s', minWidth: 60 }}
                                                     >
                                                         {isAdded ? '✓' : 'Add'}
                                                     </button>
@@ -197,21 +197,21 @@ function CreateSiteModal({ onClose, onConfirm }) {
                         </div>
 
                         {/* Preview card */}
-                        <div style={{ flex: 1, borderRadius: 12, background: selectedLot ? '#FFF7ED' : '#F3F4F6', border: `1.5px solid ${selectedLot ? '#FED7AA' : '#E5E7EB'}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 200, padding: 18, transition: 'all 0.2s' }}>
+                        <div style={{ flex: 1, borderRadius: 12, background: selectedLot ? '#EEF2FF' : '#F3F4F6', border: `1.5px solid ${selectedLot ? '#C7D2FE' : '#E5E7EB'}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 200, padding: 18, transition: 'all 0.2s' }}>
                             {selectedLot ? (
                                 <div style={{ width: '100%' }}>
                                     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
-                                        <div style={{ width: 38, height: 38, borderRadius: 9, background: '#E97316', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <div style={{ width: 38, height: 38, borderRadius: 9, background: '#6366F1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                             <MapPin size={18} color="#fff" />
                                         </div>
-                                        <button onClick={() => setSelectedLot(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#FDBA74', padding: 2 }}><X size={14} /></button>
+                                        <button onClick={() => setSelectedLot(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#A5B4FC', padding: 2 }}><X size={14} /></button>
                                     </div>
                                     <p style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 5, wordBreak: 'break-word' }}>{selectedLot.name || selectedLot.lot_id}</p>
                                     {selectedLot.address && <p style={{ fontSize: 12, color: '#6B7280', marginBottom: 4, wordBreak: 'break-word' }}>{selectedLot.address}</p>}
                                     {selectedLot.district && <p style={{ fontSize: 11, color: '#9CA3AF' }}>{selectedLot.district}</p>}
                                     {selectedLot.ref_id && <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>Ref: {selectedLot.ref_id}</p>}
-                                    <div style={{ marginTop: 12, display: 'inline-block', padding: '3px 9px', background: '#FED7AA', borderRadius: 5 }}>
-                                        <span style={{ fontSize: 10, fontWeight: 700, color: '#C2410C', fontFamily: 'monospace' }}>
+                                    <div style={{ marginTop: 12, display: 'inline-block', padding: '3px 9px', background: '#C7D2FE', borderRadius: 5 }}>
+                                        <span style={{ fontSize: 10, fontWeight: 700, color: '#4338CA', fontFamily: 'monospace' }}>
                                             {selectedLot.source === 'lot_search' ? 'LOT' : 'ADDRESS'}
                                         </span>
                                     </div>
@@ -228,9 +228,9 @@ function CreateSiteModal({ onClose, onConfirm }) {
                         <button
                             onClick={() => selectedLot && onConfirm(selectedLot)}
                             disabled={!selectedLot}
-                            style={{ width: '100%', padding: '13px 16px', borderRadius: 9, border: 'none', background: selectedLot ? '#E97316' : '#E5E7EB', color: selectedLot ? '#fff' : '#9CA3AF', fontSize: 14, fontWeight: 700, cursor: selectedLot ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, transition: 'all 0.15s' }}
-                            onMouseEnter={e => { if (selectedLot) e.currentTarget.style.background = '#C2410C' }}
-                            onMouseLeave={e => { if (selectedLot) e.currentTarget.style.background = '#E97316' }}
+                            style={{ width: '100%', padding: '13px 16px', borderRadius: 9, border: 'none', background: selectedLot ? '#6366F1' : '#E5E7EB', color: selectedLot ? '#fff' : '#9CA3AF', fontSize: 14, fontWeight: 700, cursor: selectedLot ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, transition: 'all 0.15s' }}
+                            onMouseEnter={e => { if (selectedLot) e.currentTarget.style.background = '#4F46E5' }}
+                            onMouseLeave={e => { if (selectedLot) e.currentTarget.style.background = '#6366F1' }}
                         >
                             Calculate Development Potential →
                         </button>
@@ -274,7 +274,12 @@ export default function InteractiveMaps() {
         setStatus('loading'); setImgUrl(null); setPdfUrl(null); setErrorMsg(''); setDuration(null); setFullView(false)
         const t0 = Date.now()
         try {
-            const body = { data_type: selectedLot.data_type, value: selectedLot.lot_id, lon: selectedLot.lon ?? null, lat: selectedLot.lat ?? null }
+            const body = {
+                data_type: selectedLot.data_type,
+                value:     selectedLot.lot_id,
+                ...(selectedLot.lon != null && { lon: selectedLot.lon }),
+                ...(selectedLot.lat != null && { lat: selectedLot.lat }),
+            }
             const res  = await fetch(`${API_BASE}${selectedType.endpoint}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
             setDuration(((Date.now() - t0) / 1000).toFixed(2))
             if (!res.ok) throw new Error(`Error ${res.status}: ${await res.text()}`)
@@ -331,19 +336,19 @@ export default function InteractiveMaps() {
                                 <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 8 }}>Selected Site</label>
                                 {selectedLot ? (
                                     <>
-                                        <div style={{ border: '1.5px solid #FED7AA', borderRadius: 9, padding: '12px 14px', background: '#FFF7ED', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
+                                        <div style={{ border: '1.5px solid #C7D2FE', borderRadius: 9, padding: '12px 14px', background: '#EEF2FF', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
                                             <div style={{ flex: 1, minWidth: 0 }}>
-                                                <p style={{ fontSize: 13, fontWeight: 700, color: '#C2410C', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selectedLot.name || selectedLot.lot_id}</p>
-                                                <p style={{ fontSize: 11, color: '#9A3412', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selectedLot.address || selectedLot.district}</p>
+                                                <p style={{ fontSize: 13, fontWeight: 700, color: '#4338CA', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selectedLot.name || selectedLot.lot_id}</p>
+                                                <p style={{ fontSize: 11, color: '#6366F1', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selectedLot.address || selectedLot.district}</p>
                                             </div>
-                                            <button onClick={() => { setSelectedLot(null); setStatus('idle'); setImgUrl(null); setPdfUrl(null) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#F97316', flexShrink: 0, padding: 2 }}><X size={14} /></button>
+                                            <button onClick={() => { setSelectedLot(null); setStatus('idle'); setImgUrl(null); setPdfUrl(null) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6366F1', flexShrink: 0, padding: 2 }}><X size={14} /></button>
                                         </div>
                                         <button onClick={() => setShowModal(true)} style={{ marginTop: 8, width: '100%', padding: '8px', borderRadius: 7, border: '1px solid #E5E7EB', background: '#fff', color: '#6B7280', fontSize: 12, fontWeight: 500, cursor: 'pointer' }}>Change Site</button>
                                     </>
                                 ) : (
-                                    <button onClick={() => setShowModal(true)} style={{ width: '100%', padding: '12px 16px', borderRadius: 9, border: '1.5px dashed #E97316', background: '#FFF7ED', color: '#E97316', fontSize: 14, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'background 0.15s' }}
-                                        onMouseEnter={e => e.currentTarget.style.background = '#FFEDD5'}
-                                        onMouseLeave={e => e.currentTarget.style.background = '#FFF7ED'}>
+                                    <button onClick={() => setShowModal(true)} style={{ width: '100%', padding: '12px 16px', borderRadius: 9, border: '1.5px dashed #6366F1', background: '#EEF2FF', color: '#6366F1', fontSize: 14, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'background 0.15s' }}
+                                        onMouseEnter={e => e.currentTarget.style.background = '#E0E7FF'}
+                                        onMouseLeave={e => e.currentTarget.style.background = '#EEF2FF'}>
                                         <Plus size={16} /> Create your Site
                                     </button>
                                 )}
@@ -392,7 +397,7 @@ export default function InteractiveMaps() {
                                         {selectedLot ? `Ready: ${selectedLot.name || selectedLot.lot_id}. Choose analysis type and click Generate.` : 'Click "Create your Site" to search for a lot or address.'}
                                     </p>
                                     {!selectedLot && (
-                                        <button onClick={() => setShowModal(true)} style={{ padding: '10px 22px', borderRadius: 8, border: 'none', background: '#E97316', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                                        <button onClick={() => setShowModal(true)} style={{ padding: '10px 22px', borderRadius: 8, border: 'none', background: '#6366F1', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                                             <Plus size={14} /> Create your Site
                                         </button>
                                     )}
@@ -436,7 +441,7 @@ export default function InteractiveMaps() {
                             {status === 'done' && pdfUrl && (
                                 <div style={{ textAlign: 'center', animation: 'fadeIn 0.4s ease' }}>
                                     <div style={{ position: 'relative', display: 'inline-block', marginBottom: 20 }}>
-                                        <div style={{ width: 72, height: 72, borderRadius: 16, background: '#FDF2F8', border: '1px solid #FBCFE8', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#DB2777' }}><FileText size={30} /></div>
+                                        <div style={{ width: 72, height: 72, borderRadius: 16, background: '#EEF2FF', border: '1px solid #C7D2FE', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6366F1' }}><FileText size={30} /></div>
                                         <div style={{ position: 'absolute', top: -6, right: -6, width: 22, height: 22, borderRadius: '50%', background: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 12, fontWeight: 800 }}>✓</div>
                                     </div>
                                     <p style={{ fontSize: 18, fontWeight: 700, color: '#111827', marginBottom: 6 }}>Report Ready</p>

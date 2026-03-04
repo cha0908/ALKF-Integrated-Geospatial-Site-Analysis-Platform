@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { MapPin, Car, Bus, Eye, Volume2, Loader, FileText, Map, Download, AlertCircle, Maximize2, X, ZoomIn, ZoomOut, RotateCcw, BarChart2, Search, Plus } from 'lucide-react'
+import { MapPin, Car, Bus, Eye, Volume2, Loader, FileText, Map, Download, AlertCircle, Maximize2, X, ZoomIn, ZoomOut, RotateCcw, BarChart2, Search, Plus, Trash2 } from 'lucide-react'
 
 const API_BASE = 'https://automated-site-analysis-api.onrender.com'
 
@@ -43,21 +43,189 @@ function FullViewModal({ imgUrl, onClose }) {
     )
 }
 
+// ── Leaflet Map Preview ───────────────────────────────────────
+// Loads Leaflet from CDN and renders the lot boundary polygon.
+// Supports both single lot and multi-lot merged polygon.
+function LeafletMapPreview({ lots }) {
+    const mapRef     = useRef(null)
+    const mapObjRef  = useRef(null)
+    const layerRef   = useRef(null)
+    const markerRef  = useRef(null)
+    const lotsRef    = useRef(lots)
+    lotsRef.current  = lots
+
+    // Sequence: load Leaflet JS → init map → fetch polygon.
+    // All in one effect to avoid race conditions.
+    useEffect(() => {
+        let destroyed = false
+
+        const drawForLots = async (lots_) => {
+            if (destroyed || !mapObjRef.current || !window.L) return
+            const L = window.L
+
+            if (layerRef.current)  { layerRef.current.remove();  layerRef.current  = null }
+            if (markerRef.current) { markerRef.current.remove(); markerRef.current = null }
+
+            const firstLot = lots_[0]
+            if (!firstLot?.lat || !firstLot?.lon) return
+
+            // 1. Show circle marker immediately at correct coords
+            markerRef.current = L.circleMarker([firstLot.lat, firstLot.lon], {
+                radius: 10, color: '#4F46E5', weight: 2.5,
+                fillColor: '#6366F1', fillOpacity: 0.45,
+            }).addTo(mapObjRef.current)
+            mapObjRef.current.setView([firstLot.lat, firstLot.lon], 18)
+
+            // 2. Try to fetch real polygon from /lot-boundary
+            try {
+                const extents = lots_.filter(l => l.extent).map(l => l.extent)
+                let url = `${API_BASE}/lot-boundary?lon=${firstLot.lon}&lat=${firstLot.lat}&data_type=${firstLot.data_type || 'LOT'}`
+                if (extents.length > 1) url += `&extents=${encodeURIComponent(JSON.stringify(extents))}`
+
+                const res = await fetch(url)
+                if (!res.ok) throw new Error(`HTTP ${res.status}`)
+                const geoj = await res.json()
+                if (destroyed || !mapObjRef.current) return
+
+                // Replace circle marker with real polygon
+                if (markerRef.current) { markerRef.current.remove(); markerRef.current = null }
+                layerRef.current = L.geoJSON(geoj, {
+                    style: { color: '#4F46E5', weight: 2.5, fillColor: '#6366F1', fillOpacity: 0.25 }
+                }).addTo(mapObjRef.current)
+
+                const bounds = layerRef.current.getBounds()
+                if (bounds.isValid()) mapObjRef.current.fitBounds(bounds, { padding: [50, 50] })
+            } catch (e) {
+                console.warn('lot-boundary fetch failed:', e.message)
+                // Circle marker stays as fallback
+            }
+        }
+
+        const initMap = () => {
+            if (destroyed || !mapRef.current || mapObjRef.current) return
+            const L = window.L
+            mapObjRef.current = L.map(mapRef.current, {
+                zoomControl: true, scrollWheelZoom: true, attributionControl: true,
+            })
+            L.tileLayer(
+                'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+                { attribution: '© OpenStreetMap © CARTO', maxZoom: 21 }
+            ).addTo(mapObjRef.current)
+            mapObjRef.current.setView([22.32, 114.17], 14)
+            // Draw for current lots immediately after map init
+            if (lotsRef.current?.length) drawForLots(lotsRef.current)
+        }
+
+        // Load CSS
+        if (!document.getElementById('leaflet-css')) {
+            const link = document.createElement('link')
+            link.id = 'leaflet-css'; link.rel = 'stylesheet'
+            link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
+            document.head.appendChild(link)
+        }
+
+        // Load JS then init
+        if (window.L) {
+            initMap()
+        } else {
+            if (!document.getElementById('leaflet-js')) {
+                const script = document.createElement('script')
+                script.id = 'leaflet-js'
+                script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+                document.head.appendChild(script)
+            }
+            const id = setInterval(() => { if (window.L) { clearInterval(id); initMap() } }, 80)
+        }
+
+        return () => {
+            destroyed = true
+            if (layerRef.current)  { layerRef.current.remove();  layerRef.current  = null }
+            if (markerRef.current) { markerRef.current.remove(); markerRef.current = null }
+            if (mapObjRef.current) { mapObjRef.current.remove(); mapObjRef.current = null }
+        }
+    }, [])
+
+    // Re-draw whenever lots list changes (after map is already alive)
+    useEffect(() => {
+        if (!mapObjRef.current || !window.L || !lots?.length) return
+        const L = window.L
+
+        if (layerRef.current)  { layerRef.current.remove();  layerRef.current  = null }
+        if (markerRef.current) { markerRef.current.remove(); markerRef.current = null }
+
+        const firstLot = lots[0]
+        if (!firstLot?.lat || !firstLot?.lon) return
+
+        markerRef.current = L.circleMarker([firstLot.lat, firstLot.lon], {
+            radius: 10, color: '#4F46E5', weight: 2.5,
+            fillColor: '#6366F1', fillOpacity: 0.45,
+        }).addTo(mapObjRef.current)
+        mapObjRef.current.setView([firstLot.lat, firstLot.lon], 18)
+
+        ;(async () => {
+            try {
+                const extents = lots.filter(l => l.extent).map(l => l.extent)
+                let url = `${API_BASE}/lot-boundary?lon=${firstLot.lon}&lat=${firstLot.lat}&data_type=${firstLot.data_type || 'LOT'}`
+                if (extents.length > 1) url += `&extents=${encodeURIComponent(JSON.stringify(extents))}`
+
+                const res = await fetch(url)
+                if (!res.ok) throw new Error(`HTTP ${res.status}`)
+                const geoj = await res.json()
+                if (!mapObjRef.current) return
+
+                if (markerRef.current) { markerRef.current.remove(); markerRef.current = null }
+                layerRef.current = L.geoJSON(geoj, {
+                    style: { color: '#4F46E5', weight: 2.5, fillColor: '#6366F1', fillOpacity: 0.25 }
+                }).addTo(mapObjRef.current)
+
+                const bounds = layerRef.current.getBounds()
+                if (bounds.isValid()) mapObjRef.current.fitBounds(bounds, { padding: [50, 50] })
+            } catch (e) {
+                console.warn('lot-boundary fetch failed:', e.message)
+            }
+        })()
+    }, [lots])
+
+    return (
+        <div
+            ref={mapRef}
+            style={{
+                width: '100%',
+                height: '100%',
+                borderRadius: 10,
+                overflow: 'hidden',
+                background: '#F3F4F6',
+            }}
+        />
+    )
+}
+
 // ── Create Site Modal ─────────────────────────────────────────
 function CreateSiteModal({ onClose, onConfirm }) {
-    const [tab, setTab]                 = useState('lot')
-    const [query, setQuery]             = useState('')
-    const [results, setResults]         = useState([])
-    const [searching, setSearching]     = useState(false)
+    const [tab, setTab]             = useState('lot')
+    const [query, setQuery]         = useState('')
+    const [results, setResults]     = useState([])
+    const [searching, setSearching] = useState(false)
     const [resultCount, setResultCount] = useState(0)
-    const [selectedLot, setSelectedLot] = useState(null)
-    const debounceRef                   = useRef(null)
+    const [selectedLots, setSelectedLots] = useState([])   // multi-lot array
+    const [mapReady, setMapReady]   = useState(false)
+    const [proximityWarning, setProximityWarning] = useState('')  // warning when lot is too far
+    const debounceRef               = useRef(null)
+
+    // Lots with valid coordinates (needed for map)
+    const lotsWithCoords = selectedLots.filter(l => l.lon != null && l.lat != null)
 
     useEffect(() => {
         const h = (e) => e.key === 'Escape' && onClose()
         window.addEventListener('keydown', h)
         return () => window.removeEventListener('keydown', h)
     }, [onClose])
+
+    // Delay map render slightly to avoid flash
+    useEffect(() => {
+        const t = setTimeout(() => setMapReady(true), 80)
+        return () => clearTimeout(t)
+    }, [])
 
     useEffect(() => {
         clearTimeout(debounceRef.current)
@@ -82,87 +250,153 @@ function CreateSiteModal({ onClose, onConfirm }) {
         }, 300)
     }, [query, tab])
 
-    const handleTabSwitch = (t) => { setTab(t); setQuery(''); setResults([]); setResultCount(0) }
+    const handleTabSwitch = (t) => { setTab(t); setQuery(''); setResults([]); setResultCount(0); setProximityWarning('') }
+
+    const isAdded = (r) => selectedLots.some(l => l.lot_id === r.lot_id && l.ref_id === r.ref_id)
+
+    // Haversine distance in metres between two WGS84 points
+    const haversineM = (lat1, lon1, lat2, lon2) => {
+        const R = 6371000
+        const dLat = (lat2 - lat1) * Math.PI / 180
+        const dLon = (lon2 - lon1) * Math.PI / 180
+        const a = Math.sin(dLat/2)**2 +
+                  Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+    }
+
+    // Max distance in metres a new lot can be from the nearest already-selected lot
+    const MAX_LOT_DISTANCE_M = 150
+
+    const toggleLot = (r) => {
+        setProximityWarning('')
+        if (isAdded(r)) {
+            setSelectedLots(prev => prev.filter(l => !(l.lot_id === r.lot_id && l.ref_id === r.ref_id)))
+            return
+        }
+        // First lot — always allow
+        if (selectedLots.length === 0) {
+            setSelectedLots(prev => [...prev, r])
+            return
+        }
+        // Subsequent lots — check proximity to nearest already-selected lot
+        if (!r.lat || !r.lon) {
+            setSelectedLots(prev => [...prev, r])  // no coords, allow it
+            return
+        }
+        const minDist = Math.min(
+            ...selectedLots
+                .filter(l => l.lat && l.lon)
+                .map(l => haversineM(r.lat, r.lon, l.lat, l.lon))
+        )
+        if (minDist > MAX_LOT_DISTANCE_M) {
+            setProximityWarning(
+                `${r.lot_id} is ${Math.round(minDist)}m away — too far to combine with selected lots (max ${MAX_LOT_DISTANCE_M}m). Only adjacent or nearby lots can be merged into one site.`
+            )
+            return
+        }
+        setSelectedLots(prev => [...prev, r])
+    }
+
+    const removeLot = (r) => setSelectedLots(prev => prev.filter(l => !(l.lot_id === r.lot_id && l.ref_id === r.ref_id)))
+
+    const handleConfirm = () => {
+        if (!selectedLots.length) return
+        // Build the site object the parent and API expect
+        const primary = selectedLots[0]
+        const isMulti = selectedLots.length > 1
+
+        const site = {
+            // Display
+            name:      isMulti ? `${selectedLots.length} lots selected` : (primary.name || primary.lot_id),
+            lot_id:    isMulti ? selectedLots.map(l => l.lot_id).join(', ') : primary.lot_id,
+            address:   isMulti ? selectedLots.map(l => l.district || l.lot_id).join(' / ') : primary.address,
+            district:  primary.district,
+            ref_id:    primary.ref_id,
+            data_type: primary.data_type,
+            source:    primary.source,
+            // Coords (centroid of first / pre-resolved)
+            lon: primary.lon,
+            lat: primary.lat,
+            // Multi-lot payloads for API
+            lot_ids: isMulti ? selectedLots.map(l => l.lot_id) : [primary.lot_id],
+            extents:  selectedLots.map(l => l.extent).filter(Boolean),
+            // Raw selected lots (for map re-render if needed)
+            _lots: selectedLots,
+        }
+        onConfirm(site)
+    }
 
     return (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 500, background: 'rgba(15,15,15,0.5)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
-            onClick={e => e.target === e.currentTarget && onClose()}>
-            <div style={{ background: '#fff', borderRadius: 18, width: '100%', maxWidth: 880, boxShadow: '0 32px 100px rgba(0,0,0,0.22)', overflow: 'hidden', display: 'flex', flexDirection: 'column', maxHeight: '88vh', animation: 'modalIn 0.22s ease' }}>
+        <div
+            style={{ position: 'fixed', inset: 0, zIndex: 500, background: 'rgba(15,15,15,0.5)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+            onClick={e => e.target === e.currentTarget && onClose()}
+        >
+            <div style={{ background: '#fff', borderRadius: 18, width: '100%', maxWidth: 980, boxShadow: '0 32px 100px rgba(0,0,0,0.22)', overflow: 'hidden', display: 'flex', flexDirection: 'column', maxHeight: '90vh', animation: 'modalIn 0.22s ease' }}>
 
                 {/* Header */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '22px 28px', borderBottom: '1px solid #F3F4F6' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 28px', borderBottom: '1px solid #F3F4F6' }}>
                     <h2 style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>Create your Site</h2>
                     <button onClick={onClose} style={{ background: '#F3F4F6', border: 'none', cursor: 'pointer', color: '#6B7280', display: 'flex', padding: 6, borderRadius: 6 }}><X size={16} /></button>
                 </div>
 
-                {/* Body */}
-                <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+                {/* Body — 3 column layout */}
+                <div style={{ display: 'flex', flex: 1, overflow: 'hidden', minHeight: 0 }}>
 
-                    {/* LEFT — Search */}
-                    <div style={{ flex: 1, padding: '24px 28px', borderRight: '1px solid #F3F4F6', display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    {/* COL 1 — Search */}
+                    <div style={{ width: 340, flexShrink: 0, padding: '20px 22px', borderRight: '1px solid #F3F4F6', display: 'flex', flexDirection: 'column', gap: 14, overflowY: 'auto' }}>
 
                         {/* Tabs */}
-                        <div style={{ display: 'flex', gap: 0, borderRadius: 9, overflow: 'hidden', border: '1px solid #E5E7EB' }}>
+                        <div style={{ display: 'flex', borderRadius: 9, overflow: 'hidden', border: '1px solid #E5E7EB' }}>
                             {[{ id: 'lot', label: 'Lot Search' }, { id: 'address', label: 'Address Search' }].map((t, i) => (
-                                <button key={t.id} onClick={() => handleTabSwitch(t.id)} style={{
-                                    flex: 1, padding: '10px 0', border: 'none',
-                                    borderRight: i === 0 ? '1px solid #E5E7EB' : 'none',
-                                    background: tab === t.id ? '#fff' : '#F9FAFB',
-                                    color: tab === t.id ? '#6366F1' : '#6B7280',
-                                    fontWeight: tab === t.id ? 700 : 500,
-                                    fontSize: 14, cursor: 'pointer', transition: 'all 0.12s',
-                                }}>
+                                <button key={t.id} onClick={() => handleTabSwitch(t.id)} style={{ flex: 1, padding: '9px 0', border: 'none', borderRight: i === 0 ? '1px solid #E5E7EB' : 'none', background: tab === t.id ? '#fff' : '#F9FAFB', color: tab === t.id ? '#6366F1' : '#6B7280', fontWeight: tab === t.id ? 700 : 500, fontSize: 13, cursor: 'pointer' }}>
                                     {t.label}
                                 </button>
                             ))}
                         </div>
 
-                        {/* Input */}
+                        {/* Search input */}
                         <div style={{ position: 'relative' }}>
-                            <Search size={14} style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', pointerEvents: 'none' }} />
-                            {searching && <Loader size={13} style={{ position: 'absolute', right: 48, top: '50%', transform: 'translateY(-50%)', color: '#6366F1', animation: 'spin 1s linear infinite' }} />}
+                            <Search size={13} style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', pointerEvents: 'none' }} />
+                            {searching && <Loader size={12} style={{ position: 'absolute', right: 44, top: '50%', transform: 'translateY(-50%)', color: '#6366F1', animation: 'spin 1s linear infinite' }} />}
                             {resultCount > 0 && !searching && (
-                                <span style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', fontSize: 11, color: '#9CA3AF', fontWeight: 600, pointerEvents: 'none' }}>
-                                    {resultCount} results
-                                </span>
+                                <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 10, color: '#9CA3AF', fontWeight: 600 }}>{resultCount}</span>
                             )}
                             <input
                                 autoFocus
                                 type="text"
                                 value={query}
                                 onChange={e => setQuery(e.target.value)}
-                                placeholder={tab === 'lot' ? 'e.g. IL 1657, STTL 467, NKIL…' : 'e.g. The Lily, 129 Repulse Bay Road…'}
-                                style={{ width: '100%', border: '1.5px solid #E5E7EB', borderRadius: 9, padding: '11px 110px 11px 38px', fontSize: 14, color: '#111827', outline: 'none', background: '#FAFAFA', transition: 'all 0.15s' }}
+                                placeholder={tab === 'lot' ? 'IL 1657, STTL 467, NKIL…' : 'Building name or address…'}
+                                style={{ width: '100%', border: '1.5px solid #E5E7EB', borderRadius: 8, padding: '10px 38px 10px 32px', fontSize: 13, color: '#111827', outline: 'none', background: '#FAFAFA' }}
                                 onFocus={e => { e.target.style.borderColor = '#6366F1'; e.target.style.background = '#fff' }}
                                 onBlur={e => { e.target.style.borderColor = '#E5E7EB'; e.target.style.background = '#FAFAFA' }}
                             />
                         </div>
 
-                        {/* Results */}
-                        <div style={{ flex: 1, overflowY: 'auto' }}>
+                        {/* Results list */}
+                        <div style={{ flex: 1 }}>
                             {results.length > 0 && (
-                                <div style={{ border: '1px solid #F3F4F6', borderRadius: 10, overflow: 'hidden' }}>
-                                    <div style={{ padding: '9px 16px', background: '#FAFAFA', borderBottom: '1px solid #F3F4F6' }}>
-                                        <span style={{ fontSize: 12, fontWeight: 600, color: '#6B7280' }}>Search Results</span>
+                                <div style={{ border: '1px solid #F3F4F6', borderRadius: 9, overflow: 'hidden' }}>
+                                    <div style={{ padding: '7px 13px', background: '#FAFAFA', borderBottom: '1px solid #F3F4F6' }}>
+                                        <span style={{ fontSize: 11, fontWeight: 600, color: '#6B7280' }}>Search Results</span>
                                     </div>
-                                    <div style={{ maxHeight: 300, overflowY: 'auto' }}>
+                                    <div style={{ maxHeight: 320, overflowY: 'auto' }}>
                                         {results.map((r, i) => {
-                                            const isAdded = selectedLot?.ref_id === r.ref_id && selectedLot?.lot_id === r.lot_id
+                                            const added = isAdded(r)
                                             return (
-                                                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 16px', borderBottom: i < results.length - 1 ? '1px solid #F9FAFB' : 'none', background: isAdded ? '#EEF2FF' : '#fff', transition: 'background 0.1s' }}>
+                                                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 13px', borderBottom: i < results.length - 1 ? '1px solid #F9FAFB' : 'none', background: added ? '#EEF2FF' : '#fff', transition: 'background 0.1s' }}>
                                                     <div style={{ flex: 1, minWidth: 0 }}>
-                                                        <p style={{ fontSize: 14, fontWeight: 600, color: '#111827', marginBottom: 2 }}>
+                                                        <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 1 }}>
                                                             {r.name || r.lot_id}
-                                                            {r.district && <span style={{ fontSize: 12, fontWeight: 400, color: '#6B7280', marginLeft: 6 }}>{r.district}</span>}
+                                                            {r.district && <span style={{ fontSize: 11, fontWeight: 400, color: '#6B7280', marginLeft: 5 }}>{r.district}</span>}
                                                         </p>
-                                                        {r.ref_id && <p style={{ fontSize: 12, color: '#9CA3AF' }}>Ref ID: {r.ref_id}</p>}
-                                                        {r.source === 'address_search' && r.address && <p style={{ fontSize: 12, color: '#9CA3AF' }}>{r.address}</p>}
+                                                        {r.ref_id && <p style={{ fontSize: 11, color: '#9CA3AF' }}>Ref ID: {r.ref_id}</p>}
                                                     </div>
                                                     <button
-                                                        onClick={() => setSelectedLot(isAdded ? null : r)}
-                                                        style={{ marginLeft: 14, padding: '8px 20px', borderRadius: 7, border: 'none', background: isAdded ? '#C7D2FE' : '#6366F1', color: isAdded ? '#4338CA' : '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', flexShrink: 0, transition: 'all 0.15s', minWidth: 60 }}
+                                                        onClick={() => toggleLot(r)}
+                                                        style={{ marginLeft: 10, padding: '6px 14px', borderRadius: 6, border: 'none', background: added ? '#C7D2FE' : '#6366F1', color: added ? '#4338CA' : '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', flexShrink: 0, minWidth: 52, transition: 'all 0.12s' }}
                                                     >
-                                                        {isAdded ? '✓' : 'Add'}
+                                                        {added ? '✓' : <><Plus size={11} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 2 }} />Add</>}
                                                     </button>
                                                 </div>
                                             )
@@ -170,67 +404,117 @@ function CreateSiteModal({ onClose, onConfirm }) {
                                     </div>
                                 </div>
                             )}
-
                             {query.trim().length >= 2 && !searching && results.length === 0 && (
-                                <div style={{ textAlign: 'center', padding: '40px 20px', color: '#9CA3AF' }}>
-                                    <Search size={28} style={{ margin: '0 auto 12px', opacity: 0.35 }} />
-                                    <p style={{ fontSize: 13 }}>No results found for "<strong>{query}</strong>"</p>
+                                <div style={{ textAlign: 'center', padding: '30px 20px', color: '#9CA3AF' }}>
+                                    <p style={{ fontSize: 12 }}>No results for "<strong>{query}</strong>"</p>
                                 </div>
                             )}
-
                             {query.trim().length < 2 && (
-                                <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-                                    <Search size={28} style={{ margin: '0 auto 12px', color: '#E5E7EB' }} />
-                                    <p style={{ fontSize: 13, color: '#9CA3AF' }}>
-                                        {tab === 'lot' ? 'Search by lot ID — try STTL, IL, NKIL, DD…' : 'Search by building name or street address'}
+                                <div style={{ textAlign: 'center', padding: '30px 20px' }}>
+                                    <Search size={24} style={{ margin: '0 auto 10px', color: '#E5E7EB' }} />
+                                    <p style={{ fontSize: 12, color: '#9CA3AF' }}>
+                                        {tab === 'lot' ? 'Search by lot ID — IL, STTL, NKIL…' : 'Search by building name or street'}
                                     </p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Proximity warning */}
+                        {proximityWarning && (
+                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: 8, padding: '10px 12px' }}>
+                                <span style={{ fontSize: 16, lineHeight: 1, flexShrink: 0 }}>⚠️</span>
+                                <div style={{ flex: 1 }}>
+                                    <p style={{ fontSize: 12, fontWeight: 700, color: '#C2410C', marginBottom: 2 }}>Lot too far away</p>
+                                    <p style={{ fontSize: 11, color: '#EA580C', lineHeight: 1.5 }}>{proximityWarning}</p>
+                                </div>
+                                <button onClick={() => setProximityWarning('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#FB923C', padding: 2, flexShrink: 0 }}><X size={12} /></button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* COL 2 — Map Preview */}
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', borderRight: '1px solid #F3F4F6' }}>
+                        <div style={{ padding: '14px 18px', borderBottom: '1px solid #F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <span style={{ fontSize: 12, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Site Preview</span>
+                            {lotsWithCoords.length > 0 && (
+                                <span style={{ fontSize: 11, color: '#6366F1', fontWeight: 600 }}>
+                                    {lotsWithCoords.length} lot{lotsWithCoords.length > 1 ? 's' : ''} mapped
+                                </span>
+                            )}
+                        </div>
+                        <div style={{ flex: 1, padding: 14, background: '#F9FAFB', minHeight: 0 }}>
+                            {mapReady && lotsWithCoords.length > 0 ? (
+                                <LeafletMapPreview lots={lotsWithCoords} />
+                            ) : (
+                                <div style={{ width: '100%', height: '100%', minHeight: 300, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#F3F4F6', borderRadius: 10, border: '1.5px dashed #E5E7EB', color: '#9CA3AF', gap: 10 }}>
+                                    <Map size={28} style={{ opacity: 0.3 }} />
+                                    <p style={{ fontSize: 12 }}>Map preview will appear here once you add a lot</p>
                                 </div>
                             )}
                         </div>
                     </div>
 
-                    {/* RIGHT — Preview */}
-                    <div style={{ width: 290, padding: '24px 22px', display: 'flex', flexDirection: 'column', gap: 16, background: '#FAFAFA' }}>
+                    {/* COL 3 — Selected lots + action */}
+                    <div style={{ width: 260, flexShrink: 0, padding: '20px 18px', display: 'flex', flexDirection: 'column', gap: 14, background: '#FAFAFA' }}>
                         <div>
-                            <h3 style={{ fontSize: 15, fontWeight: 700, color: '#111827', marginBottom: 3 }}>Your Site Preview</h3>
-                            <p style={{ fontSize: 12, color: '#9CA3AF' }}>{selectedLot ? '1 lot selected.' : '0 lots selected.'}</p>
+                            <h3 style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 2 }}>Your Site Preview</h3>
+                            <p style={{ fontSize: 11, color: '#9CA3AF' }}>
+                                {selectedLots.length === 0
+                                    ? '0 lots selected.'
+                                    : `${selectedLots.length} lot${selectedLots.length > 1 ? 's' : ''} selected.`}
+                            </p>
                         </div>
 
-                        {/* Preview card */}
-                        <div style={{ flex: 1, borderRadius: 12, background: selectedLot ? '#EEF2FF' : '#F3F4F6', border: `1.5px solid ${selectedLot ? '#C7D2FE' : '#E5E7EB'}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 200, padding: 18, transition: 'all 0.2s' }}>
-                            {selectedLot ? (
-                                <div style={{ width: '100%' }}>
-                                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
-                                        <div style={{ width: 38, height: 38, borderRadius: 9, background: '#6366F1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                            <MapPin size={18} color="#fff" />
-                                        </div>
-                                        <button onClick={() => setSelectedLot(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#A5B4FC', padding: 2 }}><X size={14} /></button>
-                                    </div>
-                                    <p style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 5, wordBreak: 'break-word' }}>{selectedLot.name || selectedLot.lot_id}</p>
-                                    {selectedLot.address && <p style={{ fontSize: 12, color: '#6B7280', marginBottom: 4, wordBreak: 'break-word' }}>{selectedLot.address}</p>}
-                                    {selectedLot.district && <p style={{ fontSize: 11, color: '#9CA3AF' }}>{selectedLot.district}</p>}
-                                    {selectedLot.ref_id && <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>Ref: {selectedLot.ref_id}</p>}
-                                    <div style={{ marginTop: 12, display: 'inline-block', padding: '3px 9px', background: '#C7D2FE', borderRadius: 5 }}>
-                                        <span style={{ fontSize: 10, fontWeight: 700, color: '#4338CA', fontFamily: 'monospace' }}>
-                                            {selectedLot.source === 'lot_search' ? 'LOT' : 'ADDRESS'}
-                                        </span>
-                                    </div>
+                        {/* Selected lot cards */}
+                        <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                            {selectedLots.length === 0 ? (
+                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#F3F4F6', borderRadius: 10, border: '1.5px dashed #E5E7EB', padding: 24, minHeight: 160, textAlign: 'center', color: '#9CA3AF' }}>
+                                    <MapPin size={28} style={{ opacity: 0.25, marginBottom: 8 }} />
+                                    <p style={{ fontSize: 11 }}>No lots selected yet. Search and add lots from the left panel.</p>
                                 </div>
                             ) : (
-                                <div style={{ textAlign: 'center', color: '#9CA3AF' }}>
-                                    <MapPin size={32} style={{ margin: '0 auto 10px', opacity: 0.25 }} />
-                                    <p style={{ fontSize: 12 }}>Select your site to view preview</p>
-                                </div>
+                                selectedLots.map((lot, i) => (
+                                    <div key={i} style={{ background: '#EEF2FF', border: '1.5px solid #C7D2FE', borderRadius: 9, padding: '10px 12px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <p style={{ fontSize: 12, fontWeight: 700, color: '#3730A3', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lot.name || lot.lot_id}</p>
+                                            {lot.address && <p style={{ fontSize: 10, color: '#6366F1', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lot.address}</p>}
+                                            {lot.district && <p style={{ fontSize: 10, color: '#818CF8', marginTop: 1 }}>{lot.district}</p>}
+                                            {lot.ref_id && <p style={{ fontSize: 10, color: '#A5B4FC', marginTop: 1 }}>Ref: {lot.ref_id}</p>}
+                                            <span style={{ display: 'inline-block', marginTop: 5, padding: '2px 7px', background: '#C7D2FE', borderRadius: 4, fontSize: 9, fontWeight: 700, color: '#4338CA', fontFamily: 'monospace' }}>
+                                                {lot.source === 'lot_search' ? 'LOT' : 'ADDRESS'}
+                                            </span>
+                                        </div>
+                                        <button onClick={() => removeLot(lot)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#A5B4FC', padding: 2, flexShrink: 0 }}>
+                                            <Trash2 size={12} />
+                                        </button>
+                                    </div>
+                                ))
                             )}
                         </div>
 
-                        {/* Calculate button */}
+                        {/* Multi-lot info note */}
+                        {selectedLots.length > 1 && (
+                            <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 8, padding: '8px 12px' }}>
+                                <p style={{ fontSize: 11, color: '#92400E', lineHeight: 1.5 }}>
+                                    <strong>Multi-lot mode:</strong> Selected lots will be merged into a single unified site polygon.
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Clear all */}
+                        {selectedLots.length > 0 && (
+                            <button onClick={() => setSelectedLots([])} style={{ width: '100%', padding: '7px', borderRadius: 7, border: '1px solid #E5E7EB', background: '#fff', color: '#6B7280', fontSize: 12, fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+                                <Trash2 size={11} /> Clear all
+                            </button>
+                        )}
+
+                        {/* Confirm */}
                         <button
-                            onClick={() => selectedLot && onConfirm(selectedLot)}
-                            disabled={!selectedLot}
-                            style={{ width: '100%', padding: '13px 16px', borderRadius: 9, border: 'none', background: selectedLot ? '#6366F1' : '#E5E7EB', color: selectedLot ? '#fff' : '#9CA3AF', fontSize: 14, fontWeight: 700, cursor: selectedLot ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, transition: 'all 0.15s' }}
-                            onMouseEnter={e => { if (selectedLot) e.currentTarget.style.background = '#4F46E5' }}
-                            onMouseLeave={e => { if (selectedLot) e.currentTarget.style.background = '#6366F1' }}
+                            onClick={handleConfirm}
+                            disabled={selectedLots.length === 0}
+                            style={{ width: '100%', padding: '12px 16px', borderRadius: 9, border: 'none', background: selectedLots.length > 0 ? '#6366F1' : '#E5E7EB', color: selectedLots.length > 0 ? '#fff' : '#9CA3AF', fontSize: 13, fontWeight: 700, cursor: selectedLots.length > 0 ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, transition: 'all 0.15s' }}
+                            onMouseEnter={e => { if (selectedLots.length > 0) e.currentTarget.style.background = '#4F46E5' }}
+                            onMouseLeave={e => { if (selectedLots.length > 0) e.currentTarget.style.background = '#6366F1' }}
                         >
                             Calculate Development Potential →
                         </button>
@@ -258,8 +542,8 @@ export default function InteractiveMaps() {
 
     const selectedType = analysisTypes.find(t => t.id === selected)
 
-    const handleConfirmSite = (lot) => {
-        setSelectedLot(lot)
+    const handleConfirmSite = (site) => {
+        setSelectedLot(site)
         setShowModal(false)
         setStatus('idle'); setImgUrl(null); setPdfUrl(null); setErrorMsg(''); setDuration(null)
     }
@@ -274,13 +558,20 @@ export default function InteractiveMaps() {
         setStatus('loading'); setImgUrl(null); setPdfUrl(null); setErrorMsg(''); setDuration(null); setFullView(false)
         const t0 = Date.now()
         try {
+            // Build full multi-lot aware request body
             const body = {
                 data_type: selectedLot.data_type,
-                value:     selectedLot.lot_id,
-                ...(selectedLot.lon != null && { lon: selectedLot.lon }),
-                ...(selectedLot.lat != null && { lat: selectedLot.lat }),
+                value:     selectedLot.lot_ids?.[0] || selectedLot.lot_id,
+                ...(selectedLot.lon  != null && { lon:     selectedLot.lon }),
+                ...(selectedLot.lat  != null && { lat:     selectedLot.lat }),
+                ...(selectedLot.lot_ids?.length > 0 && { lot_ids: selectedLot.lot_ids }),
+                ...(selectedLot.extents?.length > 0 && { extents: selectedLot.extents }),
             }
-            const res  = await fetch(`${API_BASE}${selectedType.endpoint}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+            const res  = await fetch(`${API_BASE}${selectedType.endpoint}`, {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify(body),
+            })
             setDuration(((Date.now() - t0) / 1000).toFixed(2))
             if (!res.ok) throw new Error(`Error ${res.status}: ${await res.text()}`)
             const ct   = res.headers.get('content-type') || ''
@@ -324,14 +615,14 @@ export default function InteractiveMaps() {
 
                 <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
 
-                    {/* LEFT */}
+                    {/* LEFT PANEL */}
                     <div style={{ width: 380, flexShrink: 0, border: '1px solid #E5E7EB', borderRadius: 12, background: '#fff', overflow: 'hidden' }}>
                         <div style={{ padding: '16px 20px', borderBottom: '1px solid #F3F4F6' }}>
                             <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#9CA3AF' }}>Analysis Controls</p>
                         </div>
                         <div style={{ padding: '20px' }}>
 
-                            {/* Site */}
+                            {/* Site selector */}
                             <div style={{ marginBottom: 20 }}>
                                 <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 8 }}>Selected Site</label>
                                 {selectedLot ? (
@@ -340,6 +631,9 @@ export default function InteractiveMaps() {
                                             <div style={{ flex: 1, minWidth: 0 }}>
                                                 <p style={{ fontSize: 13, fontWeight: 700, color: '#4338CA', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selectedLot.name || selectedLot.lot_id}</p>
                                                 <p style={{ fontSize: 11, color: '#6366F1', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selectedLot.address || selectedLot.district}</p>
+                                                {selectedLot.lot_ids?.length > 1 && (
+                                                    <p style={{ fontSize: 10, color: '#818CF8', marginTop: 2 }}>{selectedLot.lot_ids.length} lots merged</p>
+                                                )}
                                             </div>
                                             <button onClick={() => { setSelectedLot(null); setStatus('idle'); setImgUrl(null); setPdfUrl(null) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6366F1', flexShrink: 0, padding: 2 }}><X size={14} /></button>
                                         </div>
@@ -381,7 +675,7 @@ export default function InteractiveMaps() {
                         </div>
                     </div>
 
-                    {/* RIGHT */}
+                    {/* RIGHT — Result */}
                     <div style={{ flex: 1, border: '1px solid #E5E7EB', borderRadius: 12, background: '#fff', overflow: 'hidden', minHeight: 520 }}>
                         <div style={{ padding: '16px 20px', borderBottom: '1px solid #F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#9CA3AF' }}>Result Display</p>
@@ -454,9 +748,9 @@ export default function InteractiveMaps() {
                 </div>
             </div>
 
-            <footer className="border-t border-[#E2E8F0] bg-[#d1cfcf79]">
-                <div className="max-w-6xl mx-auto px-6 py-4">
-                    <p className="text-xs text-[#475569] text-center">© 2026 ALKF. All rights reserved.</p>
+            <footer style={{ borderTop: '1px solid #E2E8F0', background: 'rgba(209,207,207,0.47)' }}>
+                <div style={{ maxWidth: 1200, margin: '0 auto', padding: '16px 24px' }}>
+                    <p style={{ fontSize: 12, color: '#475569', textAlign: 'center' }}>© 2026 ALKF. All rights reserved.</p>
                 </div>
             </footer>
         </div>

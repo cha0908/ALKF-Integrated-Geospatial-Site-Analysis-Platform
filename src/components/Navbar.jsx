@@ -1,11 +1,11 @@
 import { Link, useLocation } from 'react-router-dom'
 
 const links = [
-    { path: '/', label: 'Home' },
-    { path: '/maps', label: 'Site Analysis' },
+    { path: '/',                 label: 'Home' },
+    { path: '/maps',             label: 'Site Analysis' },
     { path: '/master-land-plan', label: 'Master Land Plan' },
-    { path: '/architecture', label: 'Architecture' },
-    { path: '/about', label: 'About' },
+    { path: '/architecture',     label: 'Architecture' },
+    { path: '/about',            label: 'About' },
 ]
 
 export default function Navbar() {
@@ -13,12 +13,12 @@ export default function Navbar() {
     return (
         <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-sm border-b border-[#E2E8F0] shadow-sm">
             <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
-                {/* Logo */}
+                {/* Logo — fixed: was h-20 w-20 (80px) inside h-14 (56px) navbar */}
                 <Link to="/" className="flex items-center">
                     <img
                         src="/logo3.PNG"
                         alt="ALKF+ Spatial Intelligence Platform"
-                        className="h-20 w-20 object-cover rounded-full "
+                        className="h-10 w-10 object-cover rounded-full"
                     />
                 </Link>
 

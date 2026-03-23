@@ -3,6 +3,7 @@ import Navbar from './components/Navbar'
 import Home from './pages/Home'
 import Platform from './pages/Platform'
 import InteractiveMaps from './pages/InteractiveMaps'
+import MasterLandPlan from './pages/Masterlandplan'
 import Architecture from './pages/Architecture'
 import About from './pages/About'
 import RequestAPI from './pages/RequestAPI'
@@ -16,6 +17,7 @@ function App() {
                     <Route path="/" element={<Home />} />
                     <Route path="/platform" element={<Platform />} />
                     <Route path="/maps" element={<InteractiveMaps />} />
+                    <Route path="/master-land-plan" element={<MasterLandPlan />} />
                     <Route path="/architecture" element={<Architecture />} />
                     <Route path="/about" element={<About />} />
                     <Route path="/request-api" element={<RequestAPI />} />

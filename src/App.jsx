@@ -3,10 +3,10 @@ import Navbar from './components/Navbar'
 import Home from './pages/Home'
 import Platform from './pages/Platform'
 import InteractiveMaps from './pages/InteractiveMaps'
-import MasterLandPlan from './pages/Masterlandplan'
 import Architecture from './pages/Architecture'
 import About from './pages/About'
 import RequestAPI from './pages/RequestAPI'
+import MasterLandPlan from './pages/MasterLandPlan'
 
 function App() {
     return (
@@ -14,16 +14,15 @@ function App() {
             <Navbar />
             <main className="flex-1">
                 <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/platform" element={<Platform />} />
-                    <Route path="/maps" element={<InteractiveMaps />} />
-                    <Route path="/master-land-plan" element={<MasterLandPlan />} />
-                    <Route path="/architecture" element={<Architecture />} />
-                    <Route path="/about" element={<About />} />
-                    <Route path="/request-api" element={<RequestAPI />} />
+                    <Route path="/"                  element={<Home />} />
+                    <Route path="/platform"          element={<Platform />} />
+                    <Route path="/maps"              element={<InteractiveMaps />} />
+                    <Route path="/architecture"      element={<Architecture />} />
+                    <Route path="/about"             element={<About />} />
+                    <Route path="/request-api"       element={<RequestAPI />} />
+                    <Route path="/master-land-plan"  element={<MasterLandPlan />} />
                 </Routes>
             </main>
-           
         </div>
     )
 }
